@@ -97,7 +97,7 @@ app.get('/api', (req, res) => {
   res.json({
     success: true,
     message: '1099 Vendor Management API',
-    version: '1.0.0',
+    version: '1.0.2',
     endpoints: {
       authentication: {
         login: 'POST /api/auth/login',
