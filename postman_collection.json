@@ -1,0 +1,655 @@
+{
+  "info": {
+    "_postman_id": "1099-vendor-api-v1",
+    "name": "1099 Vendor Management API",
+    "description": "Complete API collection for 1099 vendor management system with authentication, job management, assignments, parts, and photo uploads",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "assignmentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "partId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_vendor\",\n  \"password\": \"vendor123\",\n  \"role\": \"registered_user\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Check Auth Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "status"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vendor Profile",
+      "item": [
+        {
+          "name": "Get Vendor Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vendors/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendors", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get Vendor Jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vendors/me/jobs?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendors", "me", "jobs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Vendor Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vendors/me/assignments",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendors", "me", "assignments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "Get Available Jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/available?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "available"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Job Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/:jobId",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", ":jobId"],
+              "variable": [
+                {
+                  "key": "jobId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Claim Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorNotes\": \"I can handle this repair\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/:jobId/claims",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", ":jobId", "claims"],
+              "variable": [
+                {
+                  "key": "jobId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"soNumber\": \"SO-2024-006\",\n  \"customerName\": \"Test\",\n  \"customerLastName\": \"Customer\",\n  \"customerAddress\": \"123 Test St\",\n  \"customerCity\": \"Chicago\",\n  \"customerState\": \"IL\",\n  \"customerZip\": \"60601\",\n  \"customerPhone\": \"555-0000\",\n  \"applianceType\": \"Refrigerator\",\n  \"serviceDescription\": \"Test repair\",\n  \"scheduledDate\": \"2024-12-20\",\n  \"scheduledTimeWindow\": \"8AM-12PM\",\n  \"priority\": \"medium\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assignments",
+      "item": [
+        {
+          "name": "Get All Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assignments",
+              "host": ["{{baseUrl}}"],
+              "path": ["assignments"]
+            }
+          }
+        },
+        {
+          "name": "Get Assignment Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assignments/:assignmentId",
+              "host": ["{{baseUrl}}"],
+              "path": ["assignments", ":assignmentId"],
+              "variable": [
+                {
+                  "key": "assignmentId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Assignment - Arrived",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"arrived\",\n  \"notes\": \"Arrived at customer location\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/assignments/:assignmentId",
+              "host": ["{{baseUrl}}"],
+              "path": ["assignments", ":assignmentId"],
+              "variable": [
+                {
+                  "key": "assignmentId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Assignment - In Progress",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\",\n  \"notes\": \"Started working on the repair\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/assignments/:assignmentId",
+              "host": ["{{baseUrl}}"],
+              "path": ["assignments", ":assignmentId"],
+              "variable": [
+                {
+                  "key": "assignmentId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Complete Assignment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\",\n  \"completionNotes\": \"Replaced water filter and cleaned coils. Refrigerator cooling normally.\",\n  \"laborHours\": 1.5,\n  \"totalLaborCost\": 150.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/assignments/:assignmentId",
+              "host": ["{{baseUrl}}"],
+              "path": ["assignments", ":assignmentId"],
+              "variable": [
+                {
+                  "key": "assignmentId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reschedule Assignment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newScheduledDate\": \"2024-12-22\",\n  \"newTimeWindow\": \"1PM-5PM\",\n  \"rescheduleReason\": \"Parts not available\",\n  \"vendorNotes\": \"Need to order specific part\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/assignments/:assignmentId/schedule",
+              "host": ["{{baseUrl}}"],
+              "path": ["assignments", ":assignmentId", "schedule"],
+              "variable": [
+                {
+                  "key": "assignmentId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parts",
+      "item": [
+        {
+          "name": "Add Part to Assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"partNumber\": \"WP2198202\",\n  \"partName\": \"Refrigerator Water Filter\",\n  \"quantity\": 1,\n  \"unitCost\": 45.99,\n  \"notes\": \"Replaced water filter\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/assignments/:assignmentId/parts",
+              "host": ["{{baseUrl}}"],
+              "path": ["assignments", ":assignmentId", "parts"],
+              "variable": [
+                {
+                  "key": "assignmentId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Parts for Assignment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assignments/:assignmentId/parts",
+              "host": ["{{baseUrl}}"],
+              "path": ["assignments", ":assignmentId", "parts"],
+              "variable": [
+                {
+                  "key": "assignmentId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Part",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/parts/:partId",
+              "host": ["{{baseUrl}}"],
+              "path": ["parts", ":partId"],
+              "variable": [
+                {
+                  "key": "partId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Photos",
+      "item": [
+        {
+          "name": "Upload Photos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "photos",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "assignmentId",
+                  "value": "",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Before and after repair photos",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vendors/me/photos",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendors", "me", "photos"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"vendor123\",\n  \"newPassword\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

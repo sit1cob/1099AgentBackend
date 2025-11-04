@@ -1,0 +1,52 @@
+{
+  "info": {
+    "_postman_id": "complete-1099-vendor-api",
+    "name": "Complete 1099 Vendor Management API",
+    "description": "Complete API: Authentication, Registration, Vendor Operations, Jobs, Assignments, Parts, Photos, Admin CRUD\n\nQuick Start:\n1. Login or Register\n2. Tokens auto-save\n3. Use any endpoint\n\nCredentials:\n- Admin: admin/admin123\n- Vendor: john_vendor/vendor123",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "default"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "jobId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "assignmentId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "vendorId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "partId",
+      "value": "",
+      "type": "default"
+    }
+  ],
+  "item": []
+}
