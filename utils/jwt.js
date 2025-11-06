@@ -54,7 +54,8 @@ const generateTokens = (user) => {
     id: user._id,
     username: user.username,
     role: user.role,
-    vendorId: user.vendorId,
+    // If vendorId is null, use the user's id as vendorId
+    vendorId: user.vendorId || user._id,
     permissions: user.permissions
   };
 
