@@ -6,6 +6,7 @@ const Assignment = require('../models/Assignment');
 const Photo = require('../models/Photo');
 const { authenticate, checkPermission } = require('../middleware/auth');
 const { upload } = require('../config/upload');
+const fetch = require('node-fetch');
 
 /**
  * @route   POST /api/assignments/:assignmentId/parts
