@@ -312,9 +312,8 @@ router.delete('/vendor/parts/:partId/photos', authenticate, checkPermission('upl
 
 /**
  * @route   POST /api/parts/search-sears
- * @desc    Search Sears Parts Direct GraphQL catalog (Client-side proxy info)
+ * @desc    Search Sears Parts Direct GraphQL catalog
  * @access  Public (for testing)
- * @note    Due to Cloudflare protection, this endpoint returns instructions for client-side API calls
  */
 router.post('/parts/search-sears', async (req, res, next) => {
   try {
@@ -327,20 +326,18 @@ router.post('/parts/search-sears', async (req, res, next) => {
       });
     }
 
-    console.log(`[Sears Parts API] Request for part: ${partNumber}${modelNumber ? ` (model: ${modelNumber})` : ''}`);
+    const GRAPHQL_ENDPOINT = 'https://catalog-staging.searspartsdirect.com/graphql';
+    const GRAPHQL_API_KEY = 'a3kbNXnE0P81WOl04J7xd5o82pm2f3LB5vscNPUA';
 
-    // Return GraphQL query configuration for client-side execution
-    // The client (browser/agent) can make this call directly without Cloudflare blocking
-    const fallbackUrl = `https://www.searspartsdirect.com/search?q=${encodeURIComponent(partNumber)}`;
+    console.log(`[Sears Parts API] Searching for part: ${partNumber}${modelNumber ? ` (model: ${modelNumber})` : ''}`);
 
-    res.json({
-      success: true,
-      message: 'Use client-side GraphQL call to avoid Cloudflare blocking',
-      partNumber,
-      modelNumber: modelNumber || null,
-      graphqlConfig: {
-        endpoint: 'https://catalog-staging.searspartsdirect.com/graphql',
-        apiKey: 'a3kbNXnE0P81WOl04J7xd5o82pm2f3LB5vscNPUA',
+    const response = await fetch(GRAPHQL_ENDPOINT, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-api-key': GRAPHQL_API_KEY 
+      },
+      body: JSON.stringify({
         query: `
           query PartSearch($q: String!) {
             partSearch(q: $q) {
@@ -355,10 +352,75 @@ router.post('/parts/search-sears', async (req, res, next) => {
             }
           }
         `,
-        variables: { q: partNumber }
-      },
+        variables: { q: partNumber },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[Sears Parts API] GraphQL request failed: ${response.status} (Cloudflare blocking)`);
+      const fallbackUrl = `https://www.searspartsdirect.com/search?q=${encodeURIComponent(partNumber)}`;
+      
+      // Return helpful message for client-side implementation
+      return res.json({
+        success: false,
+        message: `Server-side requests are blocked by Cloudflare. Use client-side agent code to call the GraphQL API directly.`,
+        partNumber,
+        modelNumber: modelNumber || null,
+        fallbackUrl,
+        note: 'Your agent code (fetchSearsPart) works perfectly because it runs client-side. Use that instead.',
+        cloudflareBlocked: true
+      });
+    }
+
+    const data = await response.json();
+    let parts = data?.data?.partSearch?.parts ?? [];
+
+    console.log(`[Sears Parts API] Found ${parts.length} results before filtering`);
+
+    // Filter to exact part number matches
+    parts = parts.filter((p) => p.number === partNumber);
+
+    console.log(`[Sears Parts API] Found ${parts.length} exact matches for ${partNumber}`);
+
+    // If model number provided, sort by compatibility
+    if (modelNumber) {
+      parts.sort((a, b) => {
+        const aHit = (a.models?.models ?? []).some((m) => m.number === modelNumber);
+        const bHit = (b.models?.models ?? []).some((m) => m.number === modelNumber);
+        return Number(bHit) - Number(aHit);
+      });
+    }
+
+    // Take top 3 results
+    const topParts = parts.slice(0, 3);
+
+    // Format results exactly like the agent code
+    const formattedParts = topParts.map((part) => ({
+      id: part.id ?? null,
+      number: part.number ?? null,
+      title: part.title ?? null,
+      price: typeof part.pricing?.sell === 'number' 
+        ? part.pricing.sell 
+        : Number(part.pricing?.sell ?? NaN) || null,
+      models: (part.models?.models ?? []).map((model) =>
+        [model.number ?? '', model.title ?? ''].filter(Boolean).join(' — ')
+      ),
+      description: part.description ?? null,
+    }));
+
+    const fallbackUrl = `https://www.searspartsdirect.com/search?q=${encodeURIComponent(partNumber)}`;
+
+    res.json({
+      success: true,
+      partNumber,
+      modelNumber: modelNumber || null,
+      count: formattedParts.length,
+      parts: formattedParts,
       fallbackUrl,
-      instructions: 'Make the GraphQL request from your client/agent code using the provided configuration. Server-side requests are blocked by Cloudflare.'
+      message: formattedParts.length > 0 
+        ? `Found ${formattedParts.length} matching part(s)` 
+        : `No exact matches found for ${partNumber}. Try the fallback URL.`
     });
 
   } catch (error) {
