@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -14,6 +15,7 @@ const jobRoutes = require('./routes/jobs');
 const assignmentRoutes = require('./routes/assignments');
 const partRoutes = require('./routes/parts');
 const adminRoutes = require('./routes/admin');
+const jobBoardRoutes = require('./routes/jobboard');
 
 // Import middleware
 const { errorHandler, notFound } = require('./middleware/errorHandler');
@@ -73,6 +75,11 @@ app.use('/api/auth/login', authLimiter);
 // Static files (for local uploads)
 app.use('/uploads', express.static('uploads'));
 
+// Test page for Sears Parts API
+app.get('/test-sears-parts', (req, res) => {
+  res.sendFile(path.join(__dirname, 'test-sears-parts.html'));
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
@@ -91,6 +98,7 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api', partRoutes); // Parts routes include /api/assignments/:id/parts
 app.use('/api/admin', adminRoutes); // Admin CRUD routes
+app.use('/api/jobboard', jobBoardRoutes); // Job board proxy routes (no auth required)
 
 // API documentation endpoint
 app.get('/api', (req, res) => {

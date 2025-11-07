@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sears Parts GraphQL API Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .input-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            color: #667eea;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .results.active {
+            display: block;
+        }
+        
+        .result-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .result-header h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .result-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .stat-label {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+        
+        .stat-value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .part-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .part-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+        
+        .part-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .part-title {
+            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .part-number {
+            color: #667eea;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .part-price {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .part-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .part-models {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+        }
+        
+        .models-title {
+            color: #333;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .model-tag {
+            display: inline-block;
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin: 3px;
+            color: #555;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .fallback-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #f8f9fa;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .fallback-link:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Sears Parts GraphQL API Test</h1>
+        <p class="subtitle">Test the Sears Parts Direct GraphQL integration</p>
+        
+        <form id="searchForm">
+            <div class="form-group">
+                <label for="partNumber">Part Number *</label>
+                <input 
+                    type="text" 
+                    id="partNumber" 
+                    name="partNumber" 
+                    placeholder="e.g., 796112S"
+                    value="796112S"
+                    required
+                >
+                <div class="input-hint">Enter the exact part number to search</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="modelNumber">Model Number (Optional)</label>
+                <input 
+                    type="text" 
+                    id="modelNumber" 
+                    name="modelNumber" 
+                    placeholder="e.g., 79651572210"
+                >
+                <div class="input-hint">Helps prioritize compatible parts</div>
+            </div>
+            
+            <button type="submit" id="searchBtn">Search Parts</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Searching Sears Parts catalog...</p>
+        </div>
+        
+        <div class="results" id="results"></div>
+    </div>
+    
+    <script>
+        const API_BASE_URL = window.location.origin;
+        
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const partNumber = document.getElementById('partNumber').value.trim();
+            const modelNumber = document.getElementById('modelNumber').value.trim();
+            
+            if (!partNumber) {
+                alert('Please enter a part number');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('searchBtn').disabled = true;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/parts/search-sears`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        partNumber,
+                        modelNumber: modelNumber || undefined
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('searchBtn').disabled = false;
+                
+                // Display results
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('searchBtn').disabled = false;
+                
+                document.getElementById('results').innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+                document.getElementById('results').classList.add('active');
+            }
+        });
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (!data.success) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${data.message || 'Failed to search parts'}
+                    </div>
+                `;
+                resultsDiv.classList.add('active');
+                return;
+            }
+            
+            let html = `
+                <div class="result-header">
+                    <h2>Search Results</h2>
+                    <div class="result-stats">
+                        <div class="stat">
+                            <div class="stat-label">Part Number</div>
+                            <div class="stat-value">${data.partNumber}</div>
+                        </div>
+                        ${data.modelNumber ? `
+                            <div class="stat">
+                                <div class="stat-label">Model Number</div>
+                                <div class="stat-value">${data.modelNumber}</div>
+                            </div>
+                        ` : ''}
+                        <div class="stat">
+                            <div class="stat-label">Results Found</div>
+                            <div class="stat-value">${data.count}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            if (data.parts && data.parts.length > 0) {
+                data.parts.forEach((part, index) => {
+                    html += `
+                        <div class="part-card">
+                            <div class="part-header">
+                                <div>
+                                    <div class="part-title">${part.title || 'Untitled Part'}</div>
+                                    <div class="part-number">Part #${part.number || 'N/A'}</div>
+                                </div>
+                                ${part.price ? `
+                                    <div class="part-price">$${part.price.toFixed(2)}</div>
+                                ` : ''}
+                            </div>
+                            
+                            ${part.description ? `
+                                <div class="part-description">${part.description}</div>
+                            ` : ''}
+                            
+                            ${part.models && part.models.length > 0 ? `
+                                <div class="part-models">
+                                    <div class="models-title">Compatible Models (${part.models.length})</div>
+                                    <div>
+                                        ${part.models.slice(0, 5).map(model => `
+                                            <span class="model-tag">${model}</span>
+                                        `).join('')}
+                                        ${part.models.length > 5 ? `
+                                            <span class="model-tag">+${part.models.length - 5} more</span>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+            } else {
+                html += `
+                    <div class="no-results">
+                        <p>No exact matches found for part number <strong>${data.partNumber}</strong></p>
+                        ${data.fallbackUrl ? `
+                            <a href="${data.fallbackUrl}" target="_blank" class="fallback-link">
+                                View on Sears Parts Direct →
+                            </a>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            
+            if (data.fallbackUrl && data.parts && data.parts.length > 0) {
+                html += `
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="${data.fallbackUrl}" target="_blank" class="fallback-link">
+                            View More on Sears Parts Direct →
+                        </a>
+                    </div>
+                `;
+            }
+            
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add('active');
+        }
+    </script>
+</body>
+</html>
